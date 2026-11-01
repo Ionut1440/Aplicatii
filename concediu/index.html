@@ -22,14 +22,18 @@
   html, body { margin: 0; background: var(--fundal); color: var(--text);
     font-family: Roboto, "Segoe UI", -apple-system, Helvetica, Arial, sans-serif;
     touch-action: manipulation; -webkit-text-size-adjust: 100%; }
-  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  html, body { height: 100%; overflow: hidden; }
+  /* doar containerul derulează, sub bara de stare: pagina nu trece pe sub oră/baterie,
+     așa că iOS 26 nu mai pune stratul „liquid glass” care decolorează zona de sus */
+  #derulare { position: fixed; top: env(safe-area-inset-top); left: 0; right: 0; bottom: 0; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
   button { font-family: inherit; cursor: pointer; }
   [hidden] { display: none !important; }
 
   /* bandă fixă sub bara de stare, ca textul alb al orei/bateriei să rămână lizibil la derulare */
   .bara-stare { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--indigo); z-index: 15; }
   .hero { background: linear-gradient(135deg, var(--indigo), var(--violet) 60%, #A855F7);
-    color: #fff; padding: calc(18px + env(safe-area-inset-top)) 18px 22px; border-radius: 0 0 26px 26px;
+    color: #fff; padding: 18px 18px 22px; border-radius: 0 0 26px 26px;
     box-shadow: 0 8px 24px rgba(99, 102, 241, .25); }
   .hero-top { display: flex; justify-content: space-between; align-items: center; }
   .hero h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
@@ -69,7 +73,7 @@
   .comutator.on { background: var(--co); }
   .comutator.on::after { left: 21px; }
   .nota { font-size: 12px; color: var(--text2); line-height: 1.45; margin-top: 8px; }
-  .nota.justificat { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+  .nota.justificat { text-align: justify; hyphens: none; -webkit-hyphens: none; }
 
   .perioada { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--linie); }
   .perioada:first-of-type { border-top: 0; }
@@ -77,6 +81,11 @@
   .perioada b { display: block; font-size: 14px; }
   .perioada small { display: block; color: var(--text2); font-size: 12px; line-height: 1.4; }
   .gol { color: var(--text2); font-size: 14px; padding: 6px 0; }
+  .gol-frumos { text-align: center; padding: 8px 4px 2px; }
+  .gol-frumos .ico-mare { font-size: 36px; }
+  .gol-frumos b { display: block; font-size: 16px; margin: 6px 0 4px; }
+  .gol-frumos p { margin: 0 0 14px; font-size: 14px; color: var(--text2); line-height: 1.5; text-wrap: balance; }
+  .gol-frumos .chipuri { justify-content: center; margin: 0; }
 
   .cal-cap { display: flex; align-items: center; gap: 6px; }
   .cal-cap .titlu { flex: 1; text-align: center; font-size: 17px; white-space: nowrap; font-weight: 800; background: none; border: 0; color: var(--text); padding: 8px; border-radius: 12px; }
@@ -149,6 +158,7 @@
 </head>
 <body>
 <div class="bara-stare"></div>
+<div id="derulare">
 <header class="hero">
   <div class="hero-top">
     <div><h1>Zilele mele libere</h1><p id="subtitlu"></p></div>
@@ -190,6 +200,7 @@
     <div id="listaIdei"></div>
   </section>
 </main>
+</div>
 
 <nav class="tabbar">
   <button data-tab="sold" class="activ"><span>💼</span>Sold</button>
@@ -416,7 +427,10 @@ function deseneazaSold() {
   }
   const per = perioadePlanificate();
   html += `<div class="card"><div class="eticheta" style="margin-bottom:6px">Concedii planificate</div>
-    ${per || `<div class="gol">Nimic planificat încă. Vezi tab-ul 🌴 Idei sau marchează zile în 📅 Calendar.</div>`}</div>
+    ${per || `<div class="gol-frumos"><div class="ico-mare">🏝️</div><b>Nimic planificat încă</b>
+      <p>Alege o idee sau marchează zilele în calendar.</p>
+      <div class="chipuri"><button class="chip activ" data-mergi="idei">🌴 Vezi idei</button>
+      <button class="chip" data-mergi="cal">📅 Calendar</button></div></div>`}</div>
     <div class="card"><div class="nota justificat" style="margin:0">ℹ️ Minimul legal în România este de 20 de zile lucrătoare pe an (Codul muncii, art. 145).
     Zilele neluate se pot efectua în următoarele 18 luni (art. 146), de aceea se pot reporta în anul următor.
     Zilele de concediu se numără doar în zile lucrătoare: weekendurile și sărbătorile legale nu se scad.</div></div>`;
@@ -510,7 +524,7 @@ function arataTab(t) {
   tab = t;
   for (const id of ["sold", "cal", "idei"]) $("tab-" + id).hidden = id !== t;
   document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("activ", b.dataset.tab === t));
-  window.scrollTo(0, 0);
+  $("derulare").scrollTop = 0;
   deseneaza();
 }
 
@@ -543,6 +557,7 @@ document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => arata
 
 $("tab-sold").onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.mergi) return arataTab(b.dataset.mergi);
   if (b.dataset.camp) {
     const c = date.ani[b.dataset.an];
     c[b.dataset.camp] = Math.max(0, Math.min(60, c[b.dataset.camp] + +b.dataset.d));

@@ -229,6 +229,8 @@ const AZI = D(_acum.getFullYear(), _acum.getMonth() + 1, _acum.getDate());
 const K_AZI = cheie(AZI);
 const AN_AZI = AZI.getUTCFullYear();
 const fmt = d => `${ZS[d.getUTCDay()]} ${d.getUTCDate()} ${LUNI_SCURT[d.getUTCMonth()]}`;
+// „Joi, 19 noiembrie”
+const fmtLung = d => { const z = ZILE_LUNG[d.getUTCDay()]; return `${z[0].toUpperCase() + z.slice(1)}, ${d.getUTCDate()} ${LUNI[d.getUTCMonth()].toLowerCase()}`; };
 const zile = n => n === 1 ? "1 zi" : `${n} zile`;
 
 // ---------- sărbători legale România (Codul muncii, art. 139)
@@ -390,8 +392,9 @@ function perioadePlanificate() {
     while (liber(adauga(s, -1))) s = adauga(s, -1);
     while (liber(adauga(e, 1))) e = adauga(e, 1);
     const total = Math.round((e - s) / ZI_MS) + 1;
-    return `<div class="perioada"><div class="ico">🏖️</div><div><b>${g.n === 1 ? fmt(g.s) : `${fmt(g.s)} – ${fmt(g.e)}`} ${g.e.getUTCFullYear()}</b>
-      <small>${zile(g.n)} de concediu → ${zile(total)} libere</small><small>${fmt(s)} – ${fmt(e)}</small></div></div>`;
+    return `<div class="perioada"><div class="ico">🏖️</div><div><b>${g.n === 1 ? fmtLung(g.s) : `${fmtLung(g.s)} – ${fmtLung(g.e)}`}</b>
+      <small>${g.s.getUTCFullYear()} · ${zile(g.n)} de concediu → ${total === 1 ? "1 zi liberă" : `${total} zile libere`}</small>
+      ${total > g.n ? `<small>Liber: ${fmtLung(s)} – ${fmtLung(e)}</small>` : ""}</div></div>`;
   }).join("");
 }
 

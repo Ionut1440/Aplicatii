@@ -1,5 +1,5 @@
 // Funcționare fără internet: rețeaua are prioritate (ca să vină actualizările), altfel copia salvată.
-const CACHE = "concediu-v7";
+const CACHE = "concediu-v8";
 const FISIERE = ["./", "index.html", "manifest.json", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

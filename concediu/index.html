@@ -69,11 +69,11 @@
   .nota { font-size: 12px; color: var(--text2); line-height: 1.45; margin-top: 8px; }
   .nota.justificat { text-align: justify; hyphens: none; -webkit-hyphens: none; }
 
-  .perioada { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--linie); }
-  .perioada:first-of-type { border-top: 0; }
-  .perioada .ico { width: 40px; height: 40px; border-radius: 12px; background: #E6FAF7; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .perioada b { display: block; font-size: 14px; }
-  .perioada small { display: block; color: var(--text2); font-size: 12px; line-height: 1.4; }
+  .perioada { padding: 10px 0 10px 12px; margin: 4px 0; border-left: 4px solid var(--co); border-radius: 2px; }
+  /* fiecare rând stă pe o singură linie; potrivesteRanduri() micșorează fontul dacă nu încape */
+  .perioada b, .perioada small { display: block; white-space: nowrap; overflow: hidden; }
+  .perioada b { font-size: 15px; }
+  .perioada small { color: var(--text2); font-size: 12px; line-height: 1.5; }
   .gol { color: var(--text2); font-size: 14px; padding: 6px 0; }
   .gol-frumos { text-align: center; padding: 8px 4px 2px; }
   .gol-frumos .ico-mare { font-size: 36px; }
@@ -392,10 +392,19 @@ function perioadePlanificate() {
     while (liber(adauga(s, -1))) s = adauga(s, -1);
     while (liber(adauga(e, 1))) e = adauga(e, 1);
     const total = Math.round((e - s) / ZI_MS) + 1;
-    return `<div class="perioada"><div class="ico">🏖️</div><div><b>${g.n === 1 ? fmtLung(g.s) : `${fmtLung(g.s)} – ${fmtLung(g.e)}`}</b>
+    return `<div class="perioada"><b>${g.n === 1 ? fmtLung(g.s) : `${fmtLung(g.s)} – ${fmtLung(g.e)}`}</b>
       <small>${g.s.getUTCFullYear()} · ${zile(g.n)} de concediu → ${total === 1 ? "1 zi liberă" : `${total} zile libere`}</small>
-      ${total > g.n ? `<small>Liber: ${fmtLung(s)} – ${fmtLung(e)}</small>` : ""}</div></div>`;
+      ${s < g.s || e > g.e ? `<small>Liber: ${fmtLung(s)} – ${fmtLung(e)}</small>` : ""}</div>`;
   }).join("");
+}
+
+// micșorează fontul rândurilor care nu încap pe o linie (fără să taie textul)
+function potrivesteRanduri() {
+  document.querySelectorAll(".perioada b, .perioada small").forEach(el => {
+    el.style.fontSize = "";
+    let f = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && f > 9) { f -= 0.5; el.style.fontSize = f + "px"; }
+  });
 }
 
 function deseneazaSold() {
@@ -429,6 +438,7 @@ function deseneazaSold() {
     Zilele neluate se pot efectua în următoarele 18 luni (art. 146), de aceea se pot reporta în anul următor.
     Zilele de concediu se numără doar în zile lucrătoare: weekendurile și sărbătorile legale nu se scad.</div></div>`;
   $("tab-sold").innerHTML = html;
+  potrivesteRanduri();
 }
 
 function deseneazaCalendar() {
@@ -579,6 +589,7 @@ window.inapoi = () => {
 };
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") salveaza(); });
 window.addEventListener("pagehide", salveaza);
+window.addEventListener("resize", potrivesteRanduri);
 // fără zoom cu degetele (Safari pe iPhone ignoră user-scalable=no)
 for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, e => e.preventDefault());
 document.addEventListener("touchmove", e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });

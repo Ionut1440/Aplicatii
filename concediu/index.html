@@ -22,18 +22,12 @@
   html, body { margin: 0; background: var(--fundal); color: var(--text);
     font-family: Roboto, "Segoe UI", -apple-system, Helvetica, Arial, sans-serif;
     touch-action: manipulation; -webkit-text-size-adjust: 100%; }
-  html, body { height: 100%; overflow: hidden; }
-  /* doar containerul derulează, sub bara de stare: pagina nu trece pe sub oră/baterie,
-     așa că iOS 26 nu mai pune stratul „liquid glass” care decolorează zona de sus */
-  #derulare { position: fixed; top: env(safe-area-inset-top); left: 0; right: 0; bottom: 0; overflow-y: auto;
-    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
   button { font-family: inherit; cursor: pointer; }
   [hidden] { display: none !important; }
 
-  /* bandă fixă sub bara de stare, ca textul alb al orei/bateriei să rămână lizibil la derulare */
-  .bara-stare { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--indigo); z-index: 15; }
   .hero { background: linear-gradient(135deg, var(--indigo), var(--violet) 60%, #A855F7);
-    color: #fff; padding: 18px 18px 22px; border-radius: 0 0 26px 26px;
+    color: #fff; padding: calc(18px + env(safe-area-inset-top)) 18px 22px; border-radius: 0 0 26px 26px;
     box-shadow: 0 8px 24px rgba(99, 102, 241, .25); }
   .hero-top { display: flex; justify-content: space-between; align-items: center; }
   .hero h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
@@ -157,8 +151,6 @@
 </style>
 </head>
 <body>
-<div class="bara-stare"></div>
-<div id="derulare">
 <header class="hero">
   <div class="hero-top">
     <div><h1>Zilele mele libere</h1><p id="subtitlu"></p></div>
@@ -200,7 +192,6 @@
     <div id="listaIdei"></div>
   </section>
 </main>
-</div>
 
 <nav class="tabbar">
   <button data-tab="sold" class="activ"><span>💼</span>Sold</button>
@@ -524,7 +515,7 @@ function arataTab(t) {
   tab = t;
   for (const id of ["sold", "cal", "idei"]) $("tab-" + id).hidden = id !== t;
   document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("activ", b.dataset.tab === t));
-  $("derulare").scrollTop = 0;
+  window.scrollTo(0, 0);
   deseneaza();
 }
 
